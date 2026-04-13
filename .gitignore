@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+.venv/
+
+# Models
+models/
+*.pt
+
+# Data
+data/
+
+debug/
+
+training/
+
+# OS
+.DS_Store
+
+# IDE
+.idea/

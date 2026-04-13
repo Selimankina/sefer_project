@@ -1,0 +1,35 @@
+import numpy as np
+
+
+def validate_keypoints(keypoints, conf_threshold: float) -> bool:
+    if not keypoints or len(keypoints) < 4:
+        return False
+
+    return sum(kp[2] >= conf_threshold for kp in keypoints) == 4
+
+
+def validate_geometry(rect: np.ndarray) -> bool:
+    if rect.shape != (4, 2):
+        return False
+
+    tl, tr, br, bl = rect
+
+    edges = [
+        tr - tl,
+        br - tr,
+        bl - br,
+        tl - bl
+    ]
+
+    if min(np.linalg.norm(e) for e in edges) < 5:
+        return False
+
+    def cross(a, b):
+        return a[0] * b[1] - a[1] * b[0]
+
+    crosses = [
+        cross(edges[i], edges[(i + 1) % 4])
+        for i in range(4)
+    ]
+
+    return all(c > 0 for c in crosses) or all(c < 0 for c in crosses)
