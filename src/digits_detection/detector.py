@@ -1,8 +1,9 @@
 import numpy as np
+import traceback
 from ultralytics import YOLO
 from config import MODELS_DIR
 
-from .schemas import Digit, DigitDetectionResult, DigitDetectionStatus
+from src.digits_detection.schemas import Digit, DigitDetectionResult, DigitDetectionStatus
 
 model = YOLO(MODELS_DIR / 'digit_detector.pt')
 
@@ -61,12 +62,6 @@ def detect_digits(image_path, roi) -> DigitDetectionResult:
         if not digits:
             status = DigitDetectionStatus.NO_DIGITS
 
-        elif len(digits) > 6:
-            status = DigitDetectionStatus.TOO_MANY_DIGITS
-
-        elif all(d.confidence < 0.5 for d in digits):
-            status = DigitDetectionStatus.LOW_CONFIDENCE
-
         else:
             status = DigitDetectionStatus.OK
 
@@ -78,8 +73,6 @@ def detect_digits(image_path, roi) -> DigitDetectionResult:
         )
 
     except Exception as e:
-        import traceback
-
         return DigitDetectionResult(
             image_path=image_path,
             status=DigitDetectionStatus.ERROR,

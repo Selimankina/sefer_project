@@ -7,8 +7,6 @@ from enum import Enum
 class DigitDetectionStatus(Enum):
     OK = "ok"
     NO_DIGITS = "no_digits"
-    TOO_MANY_DIGITS = "too_many_digits"
-    LOW_CONFIDENCE = "low_confidence"
     ERROR = "error"
 
 

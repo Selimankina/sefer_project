@@ -29,14 +29,13 @@ def roi_detection_image(image_path: Path) -> DetectionResult:
         return DetectionResult(
             image_path=image_path,
             status=status,
-            rois=rois,
             best_roi=best_roi
         )
 
 
     except Exception as e:
         error_message = (
-            f"Error processing {image_path}:\n"
+            f"Error ROI detecting {image_path}:\n"
             f"{traceback.format_exc()}"
         )
 

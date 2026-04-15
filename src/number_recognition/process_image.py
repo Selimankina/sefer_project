@@ -1,11 +1,11 @@
 from src.digits_detection.schemas import DigitDetectionResult, DigitDetectionStatus
 
-from .schemas import NumberResult, NumberStatus
-from .assembler import assemble_number
-from .formatter import format_number
+from src.number_recognition.schemas import NumberResult, NumberStatus
+from src.number_recognition.assembler import assemble_number
+from src.number_recognition.formatter import format_number
 
 
-LOW_CONF_THRESHOLD = 0.6
+LOW_CONF_THRESHOLD = 0.96
 
 
 def process_image(detection: DigitDetectionResult) -> NumberResult:

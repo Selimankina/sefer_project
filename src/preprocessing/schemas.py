@@ -13,7 +13,7 @@ class PreprocessStatus(Enum):
 @dataclass
 class PreprocessResult:
     image_path: Path
-    roi: np.ndarray | None
     status: PreprocessStatus
+    roi: np.ndarray | None
     reason: str | None
     detection: object

@@ -3,13 +3,13 @@ import numpy as np
 
 from src.roi_detection.schemas import DetectionStatus
 
-from .validators import validate_keypoints, validate_geometry
-from .transforms import perspective_transform, normalize_orientation
-from .crop import resize_to_height, crop_roi
-from .schemas import PreprocessResult, PreprocessStatus
+from src.preprocessing.validators import validate_keypoints, validate_geometry
+from src.preprocessing.transforms import perspective_transform, normalize_orientation
+from src.preprocessing.crop import resize_to_height, crop_roi
+from src.preprocessing.schemas import PreprocessResult, PreprocessStatus
 
 
-KPT_CONF_THRESHOLD = 0.5
+KPT_CONF_THRESHOLD = 0.3
 
 
 def process_image(detection) -> PreprocessResult:
@@ -23,7 +23,7 @@ def process_image(detection) -> PreprocessResult:
         DetectionStatus.OK,
         DetectionStatus.MULTIPLE_PLATES
     ):
-        return PreprocessResult(image_path, None, PreprocessStatus.ERROR, detection.status.value, detection)
+        return PreprocessResult(image_path, None, PreprocessStatus.ERROR, detection)
 
     roi_obj = detection.best_roi
 
@@ -100,4 +100,4 @@ def process_image(detection) -> PreprocessResult:
 
     status = PreprocessStatus.FALLBACK if fallback else PreprocessStatus.OK
 
-    return PreprocessResult(image_path, roi, status, reason, detection)
+    return PreprocessResult(image_path, status, roi, reason, detection)
