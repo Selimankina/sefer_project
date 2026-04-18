@@ -1,23 +1,20 @@
-from collections import defaultdict
-
-
 class DuplicateManager:
-    def __init__(self):
-        self.counter = defaultdict(int)
+    def __init__(self, existing_names=None):
+        self.counts = {}
+        self.used_names = set(existing_names or [])
 
     def get_unique_name(self, base_name: str) -> str:
-        """
-        Добавляет _1, _2 и т.д. если имя уже встречалось.
-        """
-        name, ext = base_name.rsplit('.', 1)
-
-        count = self.counter[name]
-
-        if count == 0:
-            self.counter[name] += 1
+        if base_name not in self.used_names:
+            self.used_names.add(base_name)
+            self.counts[base_name] = 1
             return base_name
 
-        new_name = f"{name}_{count}.{ext}"
-        self.counter[name] += 1
+        index = self.counts.get(base_name, 1)
 
-        return new_name
+        while True:
+            new_name = f"{base_name}_{index}"
+            if new_name not in self.used_names:
+                self.used_names.add(new_name)
+                self.counts[base_name] = index + 1
+                return new_name
+            index += 1

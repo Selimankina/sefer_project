@@ -1,95 +1,57 @@
 from pathlib import Path
 
-from src.number_recognition.schemas import NumberResult, NumberStatus
-from src.renaming.format_number import format_number  # ✅ исправили импорт
-from src.renaming.build_filename import build_filename
-from src.renaming.duplicate_manager import DuplicateManager
-from src.renaming.schemas import RenameResult, RenameStatus
-from src.utils.logger import setup_logger
+from src.pipeline.state import PipelineStatus
 
 
-logger = setup_logger()
+def rename_file(state, duplicate_manager):
+    old_path: Path = state.image_path
+    status = state.status
 
+    # --- определяем базовое имя ---
+    if status == PipelineStatus.OK:
+        base = state.new_name
 
-def _should_add_mark(path: Path) -> bool:
-    """
-    Проверяет, нужно ли добавлять '!_'
-    """
-    return not path.name.startswith("!_")
+    elif status == PipelineStatus.LOW_CONFIDENCE:
+        base = state.new_name
 
+    elif status in {
+        PipelineStatus.NO_NUMBER,
+        PipelineStatus.NO_DIGITS,
+        PipelineStatus.NO_ROI,
+        PipelineStatus.ERROR,
+    }:
+        base = old_path.stem
 
-def process_image(
-    result: NumberResult,
-    duplicate_manager: DuplicateManager,
-    apply: bool = False,
-) -> RenameResult:
-    original_path = result.image_path
+    else:
+        base = old_path.stem
+
+    # --- добавляем префикс !_ ---
+    if status in {
+        PipelineStatus.LOW_CONFIDENCE,
+        PipelineStatus.NO_NUMBER,
+        PipelineStatus.NO_DIGITS,
+        PipelineStatus.NO_ROI,
+    }:
+        base = "!_" + base
+
+    # --- учитываем дубликаты ---
+    base = duplicate_manager.get_unique_name(base)
+
+    new_filename = base + old_path.suffix
+    new_path = old_path.with_name(new_filename)
+
+    # --- защита от перезаписи ---
+    if new_path.exists() and new_path != old_path:
+        state.status = PipelineStatus.ERROR
+        state.error_stage = "rename_conflict"
+        state.error_message = f"{new_path.name} already exists"
+        return
 
     try:
-        add_mark = False
-        base_name: str | None = None
-
-        # --- определяем стратегию ---
-        if result.status in {
-            NumberStatus.OK,
-            NumberStatus.LOW_CONFIDENCE,
-        }:
-            formatted = format_number(result.formatted_number)
-
-            if formatted is None:
-                # ❗ невалидный номер (например 0000)
-                base_name = original_path.stem
-                add_mark = True
-            else:
-                base_name = formatted
-                add_mark = result.status == NumberStatus.LOW_CONFIDENCE
-
-        else:
-            # NO_NUMBER / INVALID_FORMAT / ERROR
-            base_name = original_path.stem
-            add_mark = True
-
-        # --- защита от повторного '!_' ---
-        if add_mark and not _should_add_mark(original_path):
-            add_mark = False
-
-        # --- формирование имени ---
-        filename = build_filename(
-            base_name,
-            original_path,
-            add_low_confidence_mark=add_mark,
-        )
-
-        # --- уникализация ---
-        filename = duplicate_manager.get_unique_name(filename)
-
-        new_path = original_path.with_name(filename)
-
-        # --- лог ---
-        logger.info(
-            f"{original_path.name} -> {filename} "
-            f"(status={result.status}, conf={result.confidence})"
-        )
-
-        # --- применение ---
-        if apply:
-            original_path.rename(new_path)
-        else:
-            logger.info("[DRY-RUN] rename skipped")
-
-        return RenameResult(
-            image_path=original_path,
-            new_path=new_path,
-            status=RenameStatus.RENAMED,
-            is_low_confidence=add_mark,
-        )
+        old_path.rename(new_path)
+        state.renamed_path = new_path
 
     except Exception as e:
-        logger.error(f"{original_path} -> ERROR: {e}")
-
-        return RenameResult(
-            image_path=original_path,
-            new_path=None,
-            status=RenameStatus.ERROR,
-            message=str(e),
-        )
+        state.status = PipelineStatus.ERROR
+        state.error_stage = "rename"
+        state.error_message = str(e)

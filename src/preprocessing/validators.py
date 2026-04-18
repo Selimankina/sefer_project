@@ -1,4 +1,5 @@
 import numpy as np
+from config.settings import ROI_MIN_EDGE_LENGTH
 
 
 def validate_keypoints(keypoints, conf_threshold: float) -> bool:
@@ -21,7 +22,7 @@ def validate_geometry(rect: np.ndarray) -> bool:
         tl - bl
     ]
 
-    if min(np.linalg.norm(e) for e in edges) < 5:
+    if min(np.linalg.norm(e) for e in edges) < ROI_MIN_EDGE_LENGTH:
         return False
 
     def cross(a, b):

@@ -1,22 +1,14 @@
-from pathlib import Path
 from ultralytics import YOLO
+import numpy as np
 
 from config import MODELS_DIR
-from src.roi_detection.schemas import ROI
+from src.common.schemas import ROI
 
-model = YOLO(MODELS_DIR / 'roi_detector.pt')
+model = YOLO(MODELS_DIR / "roi_detector.pt")
 
-def detect_rois(image_path: Path) -> list[ROI]:
-    """
-    Детекция табличек на изображении.
 
-    Args:
-        image_path (Path)
-
-    Returns:
-        list[ROI]: список найденных табличек (может быть пустым)
-    """
-    results = model(image_path)
+def detect_rois(image: np.ndarray) -> list[ROI]:
+    results = model(image)
     result = results[0]
 
     boxes_obj = result.boxes
@@ -45,10 +37,12 @@ def detect_rois(image_path: Path) -> list[ROI]:
                 for (x, y), c in zip(kpts_xy, kpts_conf)
             ]
 
-        rois.append(ROI(
-            bbox=bbox,
-            confidence=conf,
-            keypoints=keypoints
-        ))
+        rois.append(
+            ROI(
+                bbox=bbox,
+                confidence=conf,
+                keypoints=keypoints,
+            )
+        )
 
     return rois

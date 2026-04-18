@@ -1,24 +1,24 @@
 import numpy as np
 import traceback
 from ultralytics import YOLO
+
 from config import MODELS_DIR
+from src.common.schemas import Digit
 
-from src.digits_detection.schemas import Digit, DigitDetectionResult, DigitDetectionStatus
+model = YOLO(MODELS_DIR / "digit_detector.pt")
 
-model = YOLO(MODELS_DIR / 'digit_detector.pt')
 
-def detect_digits(image_path, roi) -> DigitDetectionResult:
+def detect_digits(image: np.ndarray) -> list[Digit] | None:
+    """
+    Возвращает список цифр или None при ошибке.
+    """
+
     try:
-        if roi is None:
-            return DigitDetectionResult(
-                image_path=image_path,
-                status=DigitDetectionStatus.ERROR,
-                roi=None,
-                error_message="roi_is_none"
-            )
+        if image is None:
+            return None
 
         results = model.predict(
-            roi,
+            image,
             max_det=5,
             device="cpu"
         )
@@ -27,12 +27,7 @@ def detect_digits(image_path, roi) -> DigitDetectionResult:
         boxes = result.boxes
 
         if boxes is None or len(boxes) == 0:
-            return DigitDetectionResult(
-                image_path=image_path,
-                status=DigitDetectionStatus.NO_DIGITS,
-                roi=roi,
-                digits=[]
-            )
+            return []
 
         digits = []
 
@@ -58,24 +53,8 @@ def detect_digits(image_path, roi) -> DigitDetectionResult:
                 )
             )
 
-        # --- статус ---
-        if not digits:
-            status = DigitDetectionStatus.NO_DIGITS
+        return digits
 
-        else:
-            status = DigitDetectionStatus.OK
-
-        return DigitDetectionResult(
-            image_path=image_path,
-            status=status,
-            roi=roi,
-            digits=digits
-        )
-
-    except Exception as e:
-        return DigitDetectionResult(
-            image_path=image_path,
-            status=DigitDetectionStatus.ERROR,
-            roi=roi,
-            error_message=f"{e}\n{traceback.format_exc()}"
-        )
+    except Exception:
+        print(traceback.format_exc())
+        return None

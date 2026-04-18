@@ -1,43 +1,15 @@
-import cv2
 import numpy as np
-
-from src.roi_detection.schemas import DetectionStatus
 
 from src.preprocessing.validators import validate_keypoints, validate_geometry
 from src.preprocessing.transforms import perspective_transform, normalize_orientation
 from src.preprocessing.crop import resize_to_height, crop_roi
-from src.preprocessing.schemas import PreprocessResult, PreprocessStatus
+
+from config.settings import KPT_CONF_THRESHOLD
 
 
-KPT_CONF_THRESHOLD = 0.3
-
-
-def process_image(detection) -> PreprocessResult:
-    image_path = detection.image_path
-    image = cv2.imread(str(image_path))
-
-    if image is None:
-        return PreprocessResult(image_path, None, PreprocessStatus.ERROR, "image_read_error", detection)
-
-    if detection.status not in (
-        DetectionStatus.OK,
-        DetectionStatus.MULTIPLE_PLATES
-    ):
-        return PreprocessResult(image_path, None, PreprocessStatus.ERROR, detection)
-
-    roi_obj = detection.best_roi
-
-    if roi_obj is None:
-        return PreprocessResult(
-            image_path,
-            None,
-            PreprocessStatus.ERROR,
-            "no_best_roi",
-            detection
-        )
-
+def process_preprocessing(image: np.ndarray, roi_obj):
     keypoints = roi_obj.keypoints
-    roi = None
+
     fallback = False
     reason = None
 
@@ -61,35 +33,26 @@ def process_image(detection) -> PreprocessResult:
         if roi is None:
             fallback = True
             reason = "warp_failed"
+    else:
+        roi = None
 
     # --- fallback ---
     if fallback:
         bbox = roi_obj.bbox
 
         if bbox is None:
-            return PreprocessResult(
-                image_path,
-                None,
-                PreprocessStatus.ERROR,
-                reason,
-                detection
-            )
+            return None, {"error": "no_bbox", "fallback": True}
 
         x1, y1, x2, y2 = bbox
         h, w = image.shape[:2]
+
         x1 = max(0, x1)
         y1 = max(0, y1)
         x2 = min(w, x2)
         y2 = min(h, y2)
 
         if x2 <= x1 or y2 <= y1:
-            return PreprocessResult(
-                image_path,
-                None,
-                PreprocessStatus.ERROR,
-                "invalid_bbox",
-                detection
-            )
+            return None, {"error": "invalid_bbox", "fallback": True}
 
         roi = image[y1:y2, x1:x2]
 
@@ -98,6 +61,7 @@ def process_image(detection) -> PreprocessResult:
     roi = resize_to_height(roi)
     roi = crop_roi(roi)
 
-    status = PreprocessStatus.FALLBACK if fallback else PreprocessStatus.OK
-
-    return PreprocessResult(image_path, status, roi, reason, detection)
+    return roi, {
+        "fallback": fallback,
+        "reason": reason,
+    }

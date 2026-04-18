@@ -1,46 +1,25 @@
-from pathlib import Path
 import traceback
-from src.roi_detection.detector import detect_rois
-from src.roi_detection.schemas import DetectionResult, DetectionStatus
+import numpy as np
 
-def roi_detection_image(image_path: Path) -> DetectionResult:
+from src.roi_detection.detector import detect_rois
+from src.common.schemas import ROI
+
+
+def process_roi(image: np.ndarray) -> ROI | None:
     """
-    Обрабатывает одно изображение.
-    Выбирает лучшую табличку.
+    Возвращает лучшую ROI или None.
     """
+
     try:
-        rois = detect_rois(image_path)
+        rois = detect_rois(image)
 
         if not rois:
-            return DetectionResult(
-                image_path=image_path,
-                status=DetectionStatus.NO_PLATE,
-                rois=[]
-            )
+            return None
 
         best_roi = max(rois, key=lambda r: r.confidence)
 
-        status = (
-            DetectionStatus.OK
-            if len(rois) == 1
-            else DetectionStatus.MULTIPLE_PLATES
-        )
+        return best_roi
 
-        return DetectionResult(
-            image_path=image_path,
-            status=status,
-            best_roi=best_roi
-        )
-
-
-    except Exception as e:
-        error_message = (
-            f"Error ROI detecting {image_path}:\n"
-            f"{traceback.format_exc()}"
-        )
-
-        return DetectionResult(
-            image_path=image_path,
-            status=DetectionStatus.ERROR,
-            error_message=error_message
-        )
+    except Exception:
+        print(traceback.format_exc())
+        return None

@@ -1,23 +1,49 @@
+import argparse
 from pathlib import Path
-from collections.abc import Generator
 
-from src.number_recognition.process_folder import process_number_recognition
-from src.renaming.process_folder import process_folder as process_renaming
-from src.renaming.schemas import RenameResult
+from tqdm import tqdm
+
+from src.pipeline.process_folder import process_folder
+from src.pipeline.report import save_csv_report
 
 
-def process_pipeline(
-    folder_path: Path,
-    apply: bool = False,
-) -> Generator[RenameResult, None, None]:
-    """
-    Полный pipeline:
-    folder → ROI → preprocessing → digits → number → renaming
-    """
-
-    number_results = process_number_recognition(folder_path)
-
-    yield from process_renaming(
-        number_results,
-        apply=apply,
+def main():
+    parser = argparse.ArgumentParser(
+        description="Rename photos and generate report"
     )
+
+    parser.add_argument(
+        "input_dir",
+        type=str,
+        help="Path to folder with images",
+    )
+
+    args = parser.parse_args()
+    input_dir = Path(args.input_dir)
+
+    if not input_dir.exists():
+        print(f"Folder not found: {input_dir}")
+        return
+
+    print(f"Processing folder: {input_dir}\n")
+
+    files = [p for p in input_dir.glob("*") if p.is_file()]
+
+    states = []
+
+    for state in tqdm(
+        process_folder(input_dir),
+        total=len(files),
+        desc="Processing",
+    ):
+        states.append(state)
+
+    # --- отчёт ---
+    save_csv_report(states, input_dir)
+
+    print("\nDone!")
+    print(f"Processed {len(states)} files")
+
+
+if __name__ == "__main__":
+    main()
