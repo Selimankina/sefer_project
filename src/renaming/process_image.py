@@ -16,7 +16,8 @@ def rename_file(state, duplicate_manager):
     status = state.status
 
     # --- базовое имя ---
-    if status in {PipelineStatus.OK, PipelineStatus.LOW_CONFIDENCE}:
+    if status in {PipelineStatus.OK,
+                  PipelineStatus.LOW_CONFIDENCE}:
         base = state.new_name
     else:
         base = old_path.stem

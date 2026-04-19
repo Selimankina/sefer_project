@@ -72,16 +72,21 @@ def process_folder(input_dir: Path):
         state.number = number
         state.confidence = confidence
 
+        # --- decision + naming (ИСПРАВЛЕНО) ---
         if number is None:
             state.status = PipelineStatus.NO_NUMBER
             state.should_mark_unreliable = True
-        elif confidence < MIN_CONFIDENCE:
-            state.status = PipelineStatus.LOW_CONFIDENCE
-            state.should_mark_unreliable = True
+
         else:
-            state.status = PipelineStatus.OK
+            # 👇 ВАЖНО: имя задаётся ВСЕГДА если есть number
             state.new_name = format_number(number)
 
-        # --- ВСЕГДА rename в конце ---
+            if confidence < MIN_CONFIDENCE:
+                state.status = PipelineStatus.LOW_CONFIDENCE
+                state.should_mark_unreliable = True
+            else:
+                state.status = PipelineStatus.OK
+
+        # --- rename ---
         rename_file(state, manager)
         yield state
