@@ -15,13 +15,36 @@ from src.renaming.duplicate_manager import DuplicateManager
 
 
 def process_folder(input_dir: Path):
+    """
+        Обрабатывает все изображения в папке через полный пайплайн.
+
+        Последовательно выполняет:
+        - загрузку изображения
+        - поиск ROI
+        - предобработку
+        - детекцию цифр
+        - сборку номера
+        - переименование файла
+
+        Каждый шаг сохраняет результат в PipelineState.
+        В случае ошибки этап помечается статусом, и обработка файла продолжается
+        с переходом к переименованию.
+
+        Args:
+            input_dir (Path): Папка с изображениями.
+
+        Yields:
+            PipelineState: Состояние обработки для каждого файла.
+        """
+
+    # Собираем уже существующие имена файлов, чтобы избегать конфликтов
     existing_names = {p.stem for p in input_dir.glob("*") if p.is_file()}
     manager = DuplicateManager(existing_names)
 
     for image_path in sorted(input_dir.glob("*")):
         state = PipelineState(image_path=image_path)
 
-        # --- load ---
+        # --- загрузка изображения ---
         image = load_image(image_path)
         if image is None:
             state.status = PipelineStatus.LOAD_ERROR
@@ -32,7 +55,7 @@ def process_folder(input_dir: Path):
 
         state.image = image
 
-        # --- ROI ---
+        # --- поиск ROI ---
         roi = process_roi(image)
         if roi is None:
             state.status = PipelineStatus.NO_ROI
@@ -43,7 +66,7 @@ def process_folder(input_dir: Path):
 
         state.roi = roi
 
-        # --- preprocess ---
+        # --- предобработка ---
         processed, meta = process_preprocessing(image, roi)
         if processed is None:
             state.status = PipelineStatus.PREPROCESS_ERROR
@@ -55,7 +78,7 @@ def process_folder(input_dir: Path):
 
         state.processed_image = processed
 
-        # --- digits ---
+        # --- детекция цифр ---
         digits = detect_digits(processed)
         if not digits:
             state.status = PipelineStatus.NO_DIGITS
@@ -66,19 +89,18 @@ def process_folder(input_dir: Path):
 
         state.digits = digits
 
-        # --- assembly ---
+        # --- сборка номера ---
         number, confidence, meta = assemble_number(digits)
 
         state.number = number
         state.confidence = confidence
 
-        # --- decision + naming (ИСПРАВЛЕНО) ---
+        # --- переименование файла ---
         if number is None:
             state.status = PipelineStatus.NO_NUMBER
             state.should_mark_unreliable = True
 
         else:
-            # 👇 ВАЖНО: имя задаётся ВСЕГДА если есть number
             state.new_name = format_number(number)
 
             if confidence < MIN_CONFIDENCE:
@@ -87,6 +109,6 @@ def process_folder(input_dir: Path):
             else:
                 state.status = PipelineStatus.OK
 
-        # --- rename ---
         rename_file(state, manager)
+
         yield state

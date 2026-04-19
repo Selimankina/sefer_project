@@ -12,6 +12,23 @@ UNRELIABLE_STATUSES = {
 
 
 def rename_file(state, duplicate_manager):
+    """
+        Переименовывает файл на основе результата обработки пайплайна.
+
+        Логика:
+        - выбирается базовое имя (распознанное или исходное);
+        - добавляется префикс для ненадёжных результатов;
+        - проверяется уникальность имени;
+        - выполняется переименование файла;
+        - обновляется состояние PipelineState.
+
+        Args:
+            state: текущее состояние пайплайна.
+            duplicate_manager: менеджер уникальных имён.
+
+        Returns:
+            None
+        """
     old_path: Path = state.image_path
     status = state.status
 
@@ -25,11 +42,11 @@ def rename_file(state, duplicate_manager):
     if not base:
         base = old_path.stem
 
-    # --- префикс (СНАЧАЛА логика) ---
+    # --- префикс ---
     if status in UNRELIABLE_STATUSES:
         base = "!_" + base
 
-    # --- дедупликация (ПОСЛЕ префикса!) ---
+    # --- дедупликация ---
     base = duplicate_manager.get_unique_name(base)
 
     new_filename = base + old_path.suffix

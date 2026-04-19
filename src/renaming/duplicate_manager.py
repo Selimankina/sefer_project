@@ -3,7 +3,11 @@ class DuplicateManager:
         self.counts = {}
         self.used_names = set(existing_names or [])
 
-    def get_unique_name(self, base_name: str) -> str:
+    def get_unique_name(self, base_name: str) -> str:"""
+    Генерирует уникальные имена файлов, избегая дубликатов.
+
+    Если имя уже используется, добавляет суффикс _1, _2 и т.д.
+    """
         if base_name not in self.used_names:
             self.used_names.add(base_name)
             self.counts[base_name] = 1

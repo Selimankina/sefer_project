@@ -9,6 +9,24 @@ IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".tiff", ".bmp"}
 
 
 def load_image(path: Path) -> np.ndarray | None:
+    """
+        Загружает изображение из файла.
+
+        Поддерживает:
+        - RAW форматы (через rawpy)
+        - обычные изображения (через OpenCV)
+
+        Args:
+            path (Path): Путь к файлу изображения.
+
+        Returns:
+            np.ndarray | None: Изображение в формате BGR или None,
+            если файл не поддерживается или не удалось загрузить.
+
+        Notes:
+            - RAW изображения конвертируются в RGB, затем в BGR.
+            - Неподдерживаемые форматы игнорируются.
+        """
     try:
         suffix = path.suffix.lower()
 

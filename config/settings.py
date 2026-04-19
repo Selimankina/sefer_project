@@ -1,5 +1,5 @@
 # =====================
-# ROI / preprocessing
+# ROI
 # =====================
 
 KPT_CONF_THRESHOLD = 0.3

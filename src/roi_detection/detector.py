@@ -8,6 +8,20 @@ model = YOLO(MODELS_DIR / "roi_detector.pt")
 
 
 def detect_rois(image: np.ndarray) -> list[ROI]:
+    """
+        Детектирует области интереса (ROI) на изображении с помощью YOLO.
+
+        Для каждой найденной области возвращает:
+        - bounding box (bbox)
+        - confidence
+        - keypoints (если доступны)
+
+        Args:
+            image (np.ndarray): Входное изображение.
+
+        Returns:
+            list[ROI]: Список найденных ROI (может быть пустым).
+        """
     results = model(image)
     result = results[0]
 

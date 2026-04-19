@@ -8,6 +8,26 @@ from config.settings import KPT_CONF_THRESHOLD
 
 
 def process_preprocessing(image: np.ndarray, roi_obj):
+    """
+        Выполняет предобработку ROI изображения.
+
+        Шаги обработки:
+        - проверка keypoints;
+        - проверка геометрии;
+        - перспективное преобразование (warp);
+        - при ошибке используется fallback через bbox;
+        - нормализация ориентации;
+        - ресайз и кроп.
+
+        Args:
+            image (np.ndarray): Исходное изображение.
+            roi_obj: Объект ROI с keypoints и bbox.
+
+        Returns:
+            tuple[np.ndarray | None, dict]:
+                roi (np.ndarray | None): Обработанная область интереса.
+                meta (dict): Информация о процессе (fallback, причина ошибки).
+        """
     keypoints = roi_obj.keypoints
 
     fallback = False

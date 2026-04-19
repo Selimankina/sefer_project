@@ -8,6 +8,16 @@ from src.pipeline.report import save_csv_report
 
 
 def main():
+    """
+        Точка входа в приложение.
+
+        Выполняет:
+        - чтение аргументов командной строки;
+        - проверку входной папки;
+        - запуск пайплайна обработки изображений;
+        - сбор результатов;
+        - генерацию CSV-отчёта.
+        """
     parser = argparse.ArgumentParser(
         description="Rename photos and generate report"
     )

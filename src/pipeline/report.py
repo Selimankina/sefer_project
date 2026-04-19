@@ -3,6 +3,21 @@ from pathlib import Path
 from src.pipeline.state import PipelineStatus
 
 def save_csv_report(states, output_dir: Path):
+    """
+        Сохраняет CSV-отчёт по результатам обработки файлов.
+
+        В отчёте содержится:
+        - краткая статистика (сколько файлов обработано и с какими результатами)
+        - таблица с исходными и новыми именами файлов
+        - статус обработки и confidence
+
+        Args:
+            states (list[PipelineState]): Список состояний пайплайна.
+            output_dir (Path): Папка для сохранения отчёта.
+
+        Returns:
+            Path: Путь к созданному CSV-файлу.
+        """
     output_dir.mkdir(parents=True, exist_ok=True)
     report_path = output_dir / "report.csv"
 
@@ -48,8 +63,7 @@ def save_csv_report(states, output_dir: Path):
                 s.image_path.name,
                 s.renamed_path.name if s.renamed_path else s.image_path.name,
                 s.status.value,
-                s.confidence,
-                s.error_stage
+                s.confidence
             ])
 
     return report_path

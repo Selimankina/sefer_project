@@ -1,11 +1,22 @@
 def format_number(number: str) -> str:
     """
-    Приведение номера к формату:
-    - 4 цифры (leading zeros)
-    - буквы в конце
+    Приводит строку к формату номера из 4 цифр с ведущими нулями.
+
+    Из входной строки извлекаются только цифры, после чего
+    результат дополняется слева нулями до длины 4.
+
+    Args:
+        number (str): Исходная строка.
+
+    Returns:
+        str: Строка из 4 цифр с ведущими нулями.
+
+    Examples:
+        "12" -> "0012"
+        "7" -> "0007"
+        "1234" -> "1234"
     """
 
     digits = "".join(filter(str.isdigit, number))
-    suffix = "".join(filter(str.isalpha, number))
 
-    return digits.zfill(4) + suffix
+    return digits.zfill(4)

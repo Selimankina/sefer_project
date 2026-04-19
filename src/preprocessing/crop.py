@@ -11,6 +11,16 @@ from config.settings import (
 
 
 def resize_to_height(image: np.ndarray, target_height: int = TARGET_HEIGHT) -> np.ndarray:
+    """
+        Масштабирует изображение до заданной высоты, сохраняя пропорции.
+
+        Args:
+            image (np.ndarray): Входное изображение.
+            target_height (int): Целевая высота изображения.
+
+        Returns:
+            np.ndarray: Изображение с новой высотой.
+        """
     h = image.shape[0]
 
     if h == 0:
@@ -28,6 +38,16 @@ def resize_to_height(image: np.ndarray, target_height: int = TARGET_HEIGHT) -> n
 
 
 def crop_roi(image: np.ndarray) -> np.ndarray:
+    """
+        Обрезает область интереса (ROI) по заданным пропорциям.
+
+        Args:
+            image (np.ndarray): Входное изображение.
+
+        Returns:
+            np.ndarray: Обрезанное изображение или исходное,
+            если параметры некорректны.
+        """
     h, w = image.shape[:2]
 
     top = int(CROP_TOP_RATIO * h)
