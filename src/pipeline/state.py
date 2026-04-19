@@ -34,3 +34,4 @@ class PipelineState:
     # --- pipeline control ---
     status: PipelineStatus = PipelineStatus.INIT
     error_stage: Optional[str] = None
+    error_message: Optional[str] = None

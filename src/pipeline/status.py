@@ -14,3 +14,5 @@ class PipelineStatus(str, Enum):
     LOW_CONFIDENCE = "low_confidence"
 
     OK = "ok"
+
+    ERROR = "error"

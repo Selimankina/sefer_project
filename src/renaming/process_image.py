@@ -3,38 +3,38 @@ from pathlib import Path
 from src.pipeline.state import PipelineStatus
 
 
+UNRELIABLE_STATUSES = {
+    PipelineStatus.LOW_CONFIDENCE,
+    PipelineStatus.NO_NUMBER,
+    PipelineStatus.NO_DIGITS,
+    PipelineStatus.NO_ROI,
+    PipelineStatus.PREPROCESS_ERROR,
+}
+
+
 def rename_file(state, duplicate_manager):
     old_path: Path = state.image_path
     status = state.status
 
-    # --- определяем базовое имя ---
+    # --- базовое имя ---
     if status == PipelineStatus.OK:
         base = state.new_name
 
     elif status == PipelineStatus.LOW_CONFIDENCE:
         base = state.new_name
 
-    elif status in {
-        PipelineStatus.NO_NUMBER,
-        PipelineStatus.NO_DIGITS,
-        PipelineStatus.NO_ROI,
-        PipelineStatus.ERROR,
-    }:
-        base = old_path.stem
-
     else:
         base = old_path.stem
 
-    # --- добавляем префикс !_ ---
-    if status in {
-        PipelineStatus.LOW_CONFIDENCE,
-        PipelineStatus.NO_NUMBER,
-        PipelineStatus.NO_DIGITS,
-        PipelineStatus.NO_ROI,
-    }:
+    # --- fallback если new_name нет ---
+    if not base:
+        base = old_path.stem
+
+    # --- префикс для ненадёжных результатов ---
+    if status in UNRELIABLE_STATUSES:
         base = "!_" + base
 
-    # --- учитываем дубликаты ---
+    # --- обработка дубликатов ---
     base = duplicate_manager.get_unique_name(base)
 
     new_filename = base + old_path.suffix
@@ -47,6 +47,7 @@ def rename_file(state, duplicate_manager):
         state.error_message = f"{new_path.name} already exists"
         return
 
+    # --- переименование ---
     try:
         old_path.rename(new_path)
         state.renamed_path = new_path
