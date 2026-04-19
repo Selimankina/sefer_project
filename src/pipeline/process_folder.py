@@ -19,7 +19,7 @@ def process_folder(input_dir: Path):
     manager = DuplicateManager(existing_names)
 
     for image_path in sorted(input_dir.glob("*")):
-        state = PipelineState(image_path=str(image_path))
+        state = PipelineState(image_path=image_path)
 
         # --- load ---
         image = load_image(image_path)

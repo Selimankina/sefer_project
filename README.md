@@ -87,11 +87,11 @@ https://github.com/Selimankina/sefer_project/releases/tag/v1.0/digit_detector.pt
 ```
 ## Запуск
 ```bash
-python -m src.main <path_to_folder>
+python main.py <path_to_folder>
 ```
 Пример:
 ```bash
-python -m src.main data/input
+python main.py data/input
 ```
 ## Результат
 

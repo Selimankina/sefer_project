@@ -1,5 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
+from pathlib import Path
+
 import numpy as np
 
 from src.pipeline.status import PipelineStatus
@@ -8,7 +10,7 @@ from src.pipeline.status import PipelineStatus
 @dataclass
 class PipelineState:
     # --- input ---
-    image_path: str
+    image_path: Path
     image: Optional[np.ndarray] = None
 
     # --- roi ---
