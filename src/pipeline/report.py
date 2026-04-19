@@ -40,8 +40,7 @@ def save_csv_report(states, output_dir: Path):
             "old_name",
             "new_name",
             "status",
-            "confidence",
-            "error_stage"
+            "confidence"
         ])
 
         for s in sorted_states:
