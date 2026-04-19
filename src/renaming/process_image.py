@@ -1,5 +1,4 @@
 from pathlib import Path
-
 from src.pipeline.state import PipelineStatus
 
 
@@ -17,20 +16,16 @@ def rename_file(state, duplicate_manager):
     status = state.status
 
     # --- базовое имя ---
-    if status in {PipelineStatus.OK, PipelineStatus.LOW_CONFIDENCE}:
-        base = state.new_name
-    else:
-        base = old_path.stem
+    base = state.new_name if state.new_name else old_path.stem
 
-    # fallback
     if not base:
         base = old_path.stem
 
-    # --- префикс для ненадёжных результатов ---
+    # --- префикс (СНАЧАЛА логика) ---
     if status in UNRELIABLE_STATUSES:
         base = "!_" + base
 
-    # --- обработка дубликатов ---
+    # --- дедупликация (ПОСЛЕ префикса!) ---
     base = duplicate_manager.get_unique_name(base)
 
     new_filename = base + old_path.suffix
