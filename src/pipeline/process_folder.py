@@ -26,6 +26,7 @@ def process_folder(input_dir: Path):
         if image is None:
             state.status = PipelineStatus.LOAD_ERROR
             state.should_mark_unreliable = True
+            rename_file(state, manager)
             yield state
             continue
 
@@ -36,6 +37,7 @@ def process_folder(input_dir: Path):
         if roi is None:
             state.status = PipelineStatus.NO_ROI
             state.should_mark_unreliable = True
+            rename_file(state, manager)
             yield state
             continue
 
@@ -43,23 +45,22 @@ def process_folder(input_dir: Path):
 
         # --- preprocess ---
         processed, meta = process_preprocessing(image, roi)
-
         if processed is None:
             state.status = PipelineStatus.PREPROCESS_ERROR
             state.preprocessing_meta = meta
             state.should_mark_unreliable = True
+            rename_file(state, manager)
             yield state
             continue
 
         state.processed_image = processed
-        state.preprocessing_meta = meta
 
         # --- digits ---
         digits = detect_digits(processed)
-
-        if digits is None or len(digits) == 0:
+        if not digits:
             state.status = PipelineStatus.NO_DIGITS
             state.should_mark_unreliable = True
+            rename_file(state, manager)
             yield state
             continue
 
@@ -71,7 +72,6 @@ def process_folder(input_dir: Path):
         state.number = number
         state.confidence = confidence
 
-        # --- decision ---
         if number is None:
             state.status = PipelineStatus.NO_NUMBER
             state.should_mark_unreliable = True
@@ -80,12 +80,8 @@ def process_folder(input_dir: Path):
             state.should_mark_unreliable = True
         else:
             state.status = PipelineStatus.OK
-
-        # --- naming ---
-        if number is not None:
             state.new_name = format_number(number)
 
-        # --- rename ---
+        # --- ВСЕГДА rename в конце ---
         rename_file(state, manager)
-
         yield state
