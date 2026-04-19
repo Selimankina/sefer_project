@@ -45,45 +45,57 @@
 
 ---
 
+
+
 ## Установка
 
+### Требования
+
+Python 3.10 or 3.11
+Интернет требуется только при установке зависимостей (~200 MB)
+
+### Клонирование репозитория
+```bash
 git clone https://github.com/Selimankina/sefer_project
 
 cd sefer 
+```
+### Установка и активация окружения, установка зависимостей
+```bash
+python3.10 -m venv .venv
 
-python -m venv .venv
-
-Mac/Linux:\
+Mac/Linux:
 source .venv/bin/activate
 
-Windows:\
+Windows:
 .venv\Scripts\activate 
 
+cd sefer_project
 pip install -r requirements.txt
+```
+### Загрузка моделей
+```bash
+cd sefer_project
 
-Загрузка моделей:
+mkdir -p models
 
-https://github.com/USERNAME/REPO/releases/tag/v1.0
+curl -L -o models/roi_detector.pt \
+https://github.com/Selimankina/sefer_project/releases/tag/v1.0/roi_detector.pt
 
-Создать папку:
-
-models/
-
-Разместить модели в этой папке:
-
-models/roi_detector.pt
-models/digit_detector.pt
-
+curl -L -o models/digit_detector.pt \
+https://github.com/Selimankina/sefer_project/releases/tag/v1.0/digit_detector.pt
+```
 ## Запуск
-
+```bash
 python -m src.main <path_to_folder>
-
+```
 Пример:
-
+```bash
 python -m src.main data/input
-
+```
 ## Результат
 
 Файлы переименовываются в исходной папке.
 
 Создаётся CSV-отчёт.
+
