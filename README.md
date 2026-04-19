@@ -61,6 +61,19 @@ Windows:\
 
 pip install -r requirements.txt
 
+Загрузка моделей:
+
+https://github.com/USERNAME/REPO/releases/tag/v1.0
+
+Создать папку:
+
+models/
+
+Разместить модели в этой папке:
+
+models/roi_detector.pt
+models/digit_detector.pt
+
 ## Запуск
 
 python -m src.main <path_to_folder>
