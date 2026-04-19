@@ -28,7 +28,7 @@ def rename_file(state, duplicate_manager):
 
         Returns:
             None
-        """
+    """
     old_path: Path = state.image_path
     status = state.status
 
