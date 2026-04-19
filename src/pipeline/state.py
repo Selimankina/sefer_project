@@ -29,6 +29,7 @@ class PipelineState:
 
     # --- renaming ---
     new_name: Optional[str] = None
+    renamed_path: Optional[Path] = None
     should_mark_unreliable: bool = False
 
     # --- pipeline control ---
