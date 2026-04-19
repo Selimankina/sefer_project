@@ -41,16 +41,16 @@ def save_csv_report(states, output_dir: Path):
             "new_name",
             "status",
             "confidence",
-            "error_stage",
+            "error_stage"
         ])
 
         for s in sorted_states:
             writer.writerow([
                 s.image_path.name,
-                s.renamed_path.name if s.renamed_path else None,
+                s.renamed_path.name if s.renamed_path else s.image_path.name,
                 s.status.value,
                 s.confidence,
-                s.error_stage,
+                s.error_stage
             ])
 
     return report_path
