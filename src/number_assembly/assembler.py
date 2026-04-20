@@ -1,10 +1,6 @@
-from config.settings import (
-    MIN_DIGIT_HEIGHT,
-    LINE_DISTANCE_RATIO,
-    VALID_LETTERS,
-)
+from config.settings import MIN_DIGIT_HEIGHT
 
-from src.number_assembly.geometry import fit_baseline, distance_to_line
+from src.number_assembly.geometry import fit_baseline, distance_to_line, filter_overlapping
 
 def filter_by_height(digits):
     """
@@ -34,43 +30,64 @@ def filter_by_line(digits):
         Returns:
             list[Digit]: Отфильтрованный список.
         """
-
     if not digits:
         return digits
 
-    k, b = fit_baseline(digits)
-
-    distances = [distance_to_line(d, k, b) for d in digits]
-
     avg_height = sum(d.height for d in digits) / len(digits)
-    threshold = avg_height * LINE_DISTANCE_RATIO
 
-    return [
-        d for d, dist in zip(digits, distances)
-        if dist <= threshold
+    filtered_for_line = [
+        d for d in digits
+        if d.height >= avg_height * 0.7
     ]
+
+    if len(filtered_for_line) < 2:
+        filtered_for_line = digits
+
+    k, b = fit_baseline(filtered_for_line)
+
+    digits_with_dist = [
+        (d, distance_to_line(d, k, b))
+        for d in digits
+    ]
+
+    digits_with_dist.sort(key=lambda x: x[1])
+
+    # --- сначала убираем мелкий мусор ---
+    filtered = [
+        (d, dist)
+        for d, dist in digits_with_dist
+        if d.height >= avg_height * 0.8
+    ]
+
+    # fallback
+    if len(filtered) < 2:
+        filtered = digits_with_dist
+
+    TOP_K = 4
+    return [d for d, _ in filtered[:TOP_K]]
+
 
 
 def assemble_number(digits):
     """
-        Собирает номер из списка детекций.
+    Собирает номер из списка детекций.
 
-        Последовательно:
-        - фильтрует по высоте;
-        - фильтрует по линии;
-        - сортирует слева направо;
-        - проверяет формат (цифры + опциональная буква);
-        - вычисляет confidence.
+    Последовательно:
+    - фильтрует по высоте;
+    - фильтрует по линии;
+    - сортирует слева направо;
+    - проверяет формат;
+    - вычисляет confidence.
 
-        Args:
-            digits (list[Digit]): Список детекций.
+    Args:
+        digits (list[Digit]): Список детекций.
 
-        Returns:
-            tuple[str | None, float, dict]:
-                number (str | None): Собранный номер или None при ошибке.
-                confidence (float): Средняя уверенность.
-                meta (dict): Дополнительная информация или ошибка.
-        """
+    Returns:
+        tuple[str | None, float, dict]:
+            number (str | None): Собранный номер или None при ошибке.
+            confidence (float): Средняя уверенность.
+            meta (dict): Дополнительная информация или ошибка.
+    """
 
     if not digits:
         return None, 0.0, {"error": "no_digits"}
@@ -79,6 +96,11 @@ def assemble_number(digits):
     digits = filter_by_height(digits)
     if not digits:
         return None, 0.0, {"error": "no_digits_after_height"}
+
+    # --- overlap ---
+    digits = filter_overlapping(digits)
+    if not digits:
+        return None, 0.0, {"error": "no_digits_after_overlap"}
 
     # --- line ---
     digits = filter_by_line(digits)
@@ -89,26 +111,17 @@ def assemble_number(digits):
     digits = sorted(digits, key=lambda d: d.center_x)
     labels = [d.label for d in digits]
 
-    digits_only = [l for l in labels if l.isdigit()]
-    letters = [l for l in labels if l.isalpha()]
-
-    if not (1 <= len(digits_only) <= 4):
+    if not (1 <= len(labels) <= 4):
         return None, 0.0, {"error": "invalid_format"}
-
-    if len(letters) > 1:
-        return None, 0.0, {"error": "invalid_format"}
-
-    if letters:
-        if letters[0] not in VALID_LETTERS:
-            return None, 0.0, {"error": "invalid_format"}
-
-        if not labels[-1].isalpha():
-            return None, 0.0, {"error": "invalid_format"}
 
     number = "".join(labels)
+
+    # --- номер не может состоять только из нулей ---
+    if set(number) == {"0"}:
+        return None, 0.0, {"error": "invalid_format"}
+
     confidence = sum(d.confidence for d in digits) / len(digits)
 
     return number, confidence, {
         "num_digits": len(digits),
-        "has_letter": bool(letters),
     }

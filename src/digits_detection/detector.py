@@ -35,7 +35,8 @@ def detect_digits(image: np.ndarray) -> list[Digit] | None:
         results = model.predict(
             image,
             max_det=5,
-            device="cpu"
+            device="cpu",
+            verbose=False
         )
 
         result = results[0]

@@ -22,7 +22,7 @@ def detect_rois(image: np.ndarray) -> list[ROI]:
         Returns:
             list[ROI]: Список найденных ROI (может быть пустым).
         """
-    results = model(image)
+    results = model(image, verbose=False)
     result = results[0]
 
     boxes_obj = result.boxes
