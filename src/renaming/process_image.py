@@ -42,15 +42,15 @@ def rename_file(state, duplicate_manager):
     if not base:
         base = old_path.stem
 
-    # --- префикс ---
-    if status in UNRELIABLE_STATUSES:
-        base = "!_" + base
-
     # --- дедупликация ---
     base = duplicate_manager.get_unique_name(base)
 
     new_filename = base + old_path.suffix
     new_path = old_path.with_name(new_filename)
+
+    # --- префикс ---
+    if status in UNRELIABLE_STATUSES:
+        new_path = "!_" + new_path
 
     # --- защита от перезаписи ---
     if new_path.exists() and new_path != old_path:

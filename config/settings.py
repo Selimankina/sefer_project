@@ -2,7 +2,7 @@
 # ROI
 # =====================
 
-KPT_CONF_THRESHOLD = 0
+KPT_CONF_THRESHOLD = 0.1
 
 ROI_MIN_EDGE_LENGTH = 5
 
@@ -27,4 +27,4 @@ MIN_CONFIDENCE = 0.96
 # number assembly
 # =====================
 
-MIN_DIGIT_HEIGHT = 90
+MIN_DIGIT_HEIGHT = 85

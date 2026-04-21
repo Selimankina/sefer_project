@@ -4,7 +4,7 @@ import numpy as np
 
 def perspective_transform(image: np.ndarray, rect: np.ndarray) -> np.ndarray | None:
     """
-        Преобразует изображение в прямоугольный вид по заданным углам.
+        Преобразует изображение в прямоугольник по заданным углам.
 
         Выполняет перспективное преобразование (warp perspective),
         чтобы выровнять наклонённую область ROI.
