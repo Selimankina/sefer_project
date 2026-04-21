@@ -1,71 +1,9 @@
 from config.settings import MIN_DIGIT_HEIGHT
 
-from src.number_assembly.geometry import fit_baseline, distance_to_line, filter_overlapping
-
-def filter_by_height(digits):
-    """
-        Фильтрует цифры по минимальной высоте.
-
-        Args:
-            digits (list[Digit]): Список детекций.
-
-        Returns:
-            list[Digit]: Отфильтрованный список, содержащий только цифры
-            с высотой >= MIN_DIGIT_HEIGHT.
-        """
-
-    return [d for d in digits if d.height >= MIN_DIGIT_HEIGHT]
-
-
-def filter_by_line(digits):
-    """
-        Фильтрует цифры по отклонению от базовой линии.
-
-        Строит линию по центрам цифр и удаляет
-        те, которые находятся слишком далеко от неё.
-
-        Args:
-            digits (list[Digit]): Список детекций.
-
-        Returns:
-            list[Digit]: Отфильтрованный список.
-        """
-    if not digits:
-        return digits
-
-    avg_height = sum(d.height for d in digits) / len(digits)
-
-    filtered_for_line = [
-        d for d in digits
-        if d.height >= avg_height * 0.7
-    ]
-
-    if len(filtered_for_line) < 2:
-        filtered_for_line = digits
-
-    k, b = fit_baseline(filtered_for_line)
-
-    digits_with_dist = [
-        (d, distance_to_line(d, k, b))
-        for d in digits
-    ]
-
-    digits_with_dist.sort(key=lambda x: x[1])
-
-    # --- сначала убираем мелкий мусор ---
-    filtered = [
-        (d, dist)
-        for d, dist in digits_with_dist
-        if d.height >= avg_height * 0.8
-    ]
-
-    # fallback
-    if len(filtered) < 2:
-        filtered = digits_with_dist
-
-    TOP_K = 4
-    return [d for d, _ in filtered[:TOP_K]]
-
+from src.number_assembly.geometry import (filter_by_height,
+                                          filter_by_line,
+                                          filter_overlapping
+                                          )
 
 
 def assemble_number(digits):
