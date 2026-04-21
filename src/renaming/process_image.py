@@ -32,9 +32,13 @@ def rename_file(state, duplicate_manager):
     old_path: Path = state.image_path
     status = state.status
 
+    has_number = status in {
+        PipelineStatus.OK,
+        PipelineStatus.LOW_CONFIDENCE
+    }
+
     # --- базовое имя ---
-    if status in {PipelineStatus.OK,
-                  PipelineStatus.LOW_CONFIDENCE}:
+    if has_number:
         base = state.new_name
     else:
         base = old_path.stem
@@ -42,15 +46,18 @@ def rename_file(state, duplicate_manager):
     if not base:
         base = old_path.stem
 
-    # --- дедупликация ---
-    base = duplicate_manager.get_unique_name(base)
+    # --- дедупликация ТОЛЬКО для номеров ---
+    if has_number:
+        base = duplicate_manager.get_unique_name(base)
 
+    # --- имя файла ---
     new_filename = base + old_path.suffix
-    new_path = old_path.with_name(new_filename)
 
     # --- префикс ---
     if status in UNRELIABLE_STATUSES:
-        new_path = "!_" + new_path
+        new_filename = "!_" + new_filename
+
+    new_path = old_path.with_name(new_filename)
 
     # --- защита от перезаписи ---
     if new_path.exists() and new_path != old_path:
@@ -59,12 +66,12 @@ def rename_file(state, duplicate_manager):
         state.error_message = f"{new_path.name} already exists"
         return
 
-    # --- переименование ---
+    # --- rename ---
     try:
         old_path.rename(new_path)
 
         state.renamed_path = new_path
-        state.new_name = new_path.stem
+        state.new_name = base if has_number else None
         state.error_stage = None
         state.error_message = None
 
