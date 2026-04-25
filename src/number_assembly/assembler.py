@@ -1,5 +1,3 @@
-from config.settings import MIN_DIGIT_HEIGHT
-
 from src.number_assembly.geometry import (filter_by_height,
                                           filter_by_line,
                                           filter_overlapping

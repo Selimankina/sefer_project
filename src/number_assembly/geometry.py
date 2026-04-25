@@ -1,5 +1,7 @@
 import numpy as np
 
+from config.settings import MIN_DIGIT_HEIGHT
+
 
 def filter_by_height(digits):
     """

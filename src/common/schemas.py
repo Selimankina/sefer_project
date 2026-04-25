@@ -11,7 +11,7 @@ class ROI:
     bbox: List[int]  # [x1, y1, x2, y2]
     confidence: float
     keypoints: Optional[List[List[float]]] = None
-    # формат keypoints: [[x, y, conf], ...]
+
 
 
 @dataclass

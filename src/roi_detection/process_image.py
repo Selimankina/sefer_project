@@ -1,6 +1,7 @@
 import traceback
 import numpy as np
 
+from config import DATA_DIR
 from src.roi_detection.detector import detect_rois
 from src.common.schemas import ROI
 

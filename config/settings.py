@@ -21,7 +21,7 @@ CROP_RIGHT_RATIO = 0.8
 # number recognition
 # =====================
 
-MIN_CONFIDENCE = 0.96
+MIN_CONFIDENCE = 0.959
 
 # =====================
 # number assembly
